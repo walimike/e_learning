@@ -1,5 +1,14 @@
 Rails.application.routes.draw do
-  root 'home#index'
+  resources :payments
+  resources :ratings
+  resources :certificates
+  resources :quiz_responses
+  resources :quiz_options
+  resources :quizzes
+  resources :lessons
+  resources :enrollments
+  resources :courses
+  root 'courses#index'
   devise_for :users, controllers: { 
     registrations: 'users/registrations',
     sessions: 'users/sessions',

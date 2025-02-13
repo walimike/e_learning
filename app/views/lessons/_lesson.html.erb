@@ -1,0 +1,22 @@
+<div id="<%= dom_id lesson %>" class="card mb-4">
+  <div class="card-header">
+    <h5 class="card-title"><%= lesson.title %></h5>
+  </div>
+  
+  <div class="card-body">
+    <p><strong>Video:</strong></p>
+    <!-- YouTube Video Embed -->
+    <div class="embed-responsive embed-responsive-16by9 mb-3">
+      <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/<%= extract_video_id(lesson.video_url) %>" allowfullscreen></iframe>
+    </div>
+
+    <p><strong>Course:</strong> <%= lesson.course.title %></p>
+
+    <% if current_user.role == 'admin' %>
+      <div>
+        <%= link_to "Edit this lesson", edit_lesson_path(lesson), class: "btn btn-warning btn-sm" %>
+        <%= button_to "Destroy this lesson", lesson, method: :delete, class: "btn btn-danger btn-sm", data: { confirm: "Are you sure?" } %>
+      </div>
+    <% end %>
+  </div>
+</div>
