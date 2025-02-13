@@ -2,6 +2,7 @@ class Course < ApplicationRecord
   belongs_to :user
   has_one_attached :thumbnail
   has_many :lessons, -> { order(:position) } 
+  has_many :enrollments
 
   validates :title, :description, :price, presence: true
 

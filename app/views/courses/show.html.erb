@@ -1,10 +1,123 @@
 <p style="color: green"><%= notice %></p>
 
-<%= render @course %>
+<div class="container">
+  <div class="row">
+    <!-- Left Column: Course Details -->
+    <div class="col-lg-8">
+      <h2 class="mb-3"><%= @course.title %></h2>
+      <div class="card shadow-sm border-0">
+      <div class="position-relative text-center">
+        <img src="<%= url_for(@course.thumbnail) || 'https://via.placeholder.com/350' %>" 
+            class="card-img-top rounded-top img-fluid mx-auto d-block" 
+            style="max-width: 450px; max-height: 450px; object-fit: cover;" 
+            alt="<%= @course.title %>">
+      </div>
+        <div class="card-body">
+          <h5 class="card-title"><%= @course.title %></h5>
+          <p class="text-muted">
+            <i class="bi bi-clock"></i> <%= @course.duration || 'N/A' %> Hours
+          </p>
+          <p><%= @course.description || "Course description goes here." %></p>
+          <hr>
+          <div class="d-flex justify-content-between align-items-center">
+            <p class="fw-bold fs-5 mb-0">UGX <%= number_with_delimiter(@course.price, delimiter: ' ') %></p>
+            <%= link_to "Purchase", course_path(@course), class: "btn btn-primary rounded-pill px-3" %>
+          </div>
+        </div>
+      </div>
 
-<div>
-  <%= link_to "Edit this course", edit_course_path(@course) %> |
-  <%= link_to "Back to courses", courses_path %>
+      <!-- Course Content Section -->
+      <h3 class="mt-4">Course Content</h3>
+      <div class="accordion" id="courseLessonsAccordion">
+        <% @course.lessons.each_with_index do |lesson, index| %>
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="heading<%= index %>">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<%= index %>" aria-expanded="false" aria-controls="collapse<%= index %>">
+                <%= lesson.title %>
+              </button>
+            </h2>
+            <div id="collapse<%= index %>" class="accordion-collapse collapse" aria-labelledby="heading<%= index %>" data-bs-parent="#courseLessonsAccordion">
+              <div class="accordion-body">
+                <p>Lesson Description: <%= lesson.description || "No description available." %></p>
+                <% if lesson.video_url.present? %>
+                  <div class="embed-responsive embed-responsive-16by9 ratio ratio-16x9 mb-3">
+                    <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/<%= extract_video_id(lesson.video_url) %>" allowfullscreen></iframe>
+                  </div>
+                <% else %>
+                  <p>No video available.</p>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
 
-  <%= button_to "Destroy this course", @course, method: :delete %>
+    <!-- Right Column: Course Info -->
+  <div class="col-lg-4">
+    <div class="card p-3">
+      <h4 class="fw-bold">₹99</h4>
+      <button class="btn btn-primary w-100">Purchase</button>
+
+      <div class="mt-3 p-3 border rounded">
+        <p><i class="bi bi-bar-chart"></i> Beginner</p>
+        <p><i class="bi bi-mortarboard"></i> <%= @course.enrollments.count %> Total Enrolled</p>
+        <p><i class="bi bi-clock"></i> <%= @course.duration %></p>
+        <p><i class="bi bi-arrow-clockwise"></i> <%= @course.updated_at.strftime("%B %d, %Y") %> Last Updated</p>
+      </div>
+
+      <!-- Course Authors -->
+      <div class="mt-3 p-3 border rounded">
+        <h5>A course by</h5>
+        <div class="d-flex align-items-center mb-2">
+          <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center" style="width: 40px; height: 40px; font-weight: bold;">
+            <%= user_initials(@course.user.full_name) %>
+          </div>
+          <span class="ms-2"><%= @course.user.full_name %></span>
+        </div>
+      </div>
+
+      <!-- Material Includes -->
+      <div class="mt-3 p-3 border rounded">
+        <h5>Material Includes</h5>
+        <ul class="list-unstyled">
+          <li>✔️ 24 hours on-demand video</li>
+          <li>✔️ 33 complete lessons</li>
+          <li>✔️ 19 coding exercises</li>
+          <li>✔️ Full lifetime access</li>
+          <li>✔️ Access on mobile and TV</li>
+          <li>✔️ Certificate of Completion</li>
+        </ul>
+      </div>
+
+      <!-- Tags -->
+      <div class="mt-3 p-3 border rounded">
+        <h5>Tags</h5>
+        <div class="d-flex gap-2 flex-wrap">
+          <span class="badge bg-light text-dark border">CSS</span>
+          <span class="badge bg-light text-dark border">HTML</span>
+          <span class="badge bg-light text-dark border">Programming</span>
+        </div>
+      </div>
+
+      <!-- Audience -->
+      <div class="mt-3 p-3 border rounded">
+        <h5>Audience</h5>
+        <ul class="list-unstyled">
+          <li>🔹 Beginners who have never programmed before</li>
+          <li>🔹 Programmers switching languages to CSS</li>
+          <li>🔹 Intermediate CSS programmers who want to level up their skills!</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  </div>
+</div>
+<div class="d-flex align-items-center m-5">
+  <% if is_admin %>
+    <%= link_to "Back to courses", courses_path, class: "btn btn-primary-outline me-3" %>
+    <%= link_to "Edit this course", edit_course_path(@course), class: "btn btn-primary me-3" %>
+    <%= button_to "Destroy this course", @course, method: :delete, class: "btn btn-danger me-3" %>
+  <% end %>
 </div>
