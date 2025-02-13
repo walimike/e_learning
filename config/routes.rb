@@ -8,7 +8,7 @@ Rails.application.routes.draw do
   resources :lessons
   resources :enrollments
   resources :courses
-  root 'home#index'
+  root 'courses#index'
   devise_for :users, controllers: { 
     registrations: 'users/registrations',
     sessions: 'users/sessions',

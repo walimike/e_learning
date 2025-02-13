@@ -21,7 +21,8 @@ class LessonsController < ApplicationController
 
   # POST /lessons or /lessons.json
   def create
-    @lesson = Lesson.new(lesson_params)
+    @lesson = @course.lessons.build(lesson_params)
+    @lesson.position = (@course.lessons.maximum(:position) || 0) + 1 
 
     respond_to do |format|
       if @lesson.save

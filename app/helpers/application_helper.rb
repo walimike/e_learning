@@ -6,4 +6,12 @@ module ApplicationHelper
       nil
     end
   end
+
+  def user_initials(full_name)
+    full_name.split.map { |name| name[0] }.join.upcase
+  end
+
+  def is_admin
+    current_user.role == 'admin'
+  end
 end

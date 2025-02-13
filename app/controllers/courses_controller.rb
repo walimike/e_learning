@@ -1,9 +1,19 @@
 class CoursesController < ApplicationController
   before_action :set_course, only: %i[ show edit update destroy ]
+  before_action :authorize_admin!, only: [:new, :create, :edit, :update, :destroy]
 
   # GET /courses or /courses.json
   def index
     @courses = Course.all
+
+    case params[:sort]
+    when "created_at_desc"
+      @courses = @courses.order(created_at: :desc)
+    when "price_asc"
+      @courses = @courses.order(price: :asc)
+    when "price_desc"
+      @courses = @courses.order(price: :desc)
+    end
   end
 
   # GET /courses/1 or /courses/1.json
