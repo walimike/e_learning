@@ -1,0 +1,14 @@
+<p style="color: green"><%= notice %></p>
+
+<div class="container">
+  <h1 class="mb-4">Available Courses</h1>
+  <div class="row">
+    <% @courses.each do |course| %>
+      <div class="col-md-4">
+        <%= render partial: "course", locals: { course: course } %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<%= link_to "New course", new_course_path %>
