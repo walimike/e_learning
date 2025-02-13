@@ -1,0 +1,7 @@
+<h1>Home#index</h1>
+<p>Find me in app/views/home/index.html.erb</p>
+
+<% if current_user %>
+<% else %>
+<%= button_to 'Logout', destroy_user_session_path, method: :delete, class: 'dropdown-item', data: { turbo: false } %>
+<% end %>
