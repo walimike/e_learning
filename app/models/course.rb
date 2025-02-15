@@ -13,4 +13,9 @@ class Course < ApplicationRecord
   def categories
     ["CSS", "HTML"] # Replace with actual logic
   end
+  
+  def is_enrolled?(user)
+    return false unless user 
+    enrollments.exists?(user_id: user.id)
+  end
 end
