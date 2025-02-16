@@ -4,7 +4,10 @@ class CoursesController < ApplicationController
 
   # GET /courses or /courses.json
   def index
-    @courses = Course.all
+    @courses = Course.left_joins(:bookmarked_users)  # Use the correct association name
+                 .group(:id)
+                 .order("COUNT(users.id) DESC")  # Order courses by bookmark count
+
 
     case params[:sort]
     when "created_at_desc"
@@ -42,6 +45,22 @@ class CoursesController < ApplicationController
         format.html { render :new, status: :unprocessable_entity }
         format.json { render json: @course.errors, status: :unprocessable_entity }
       end
+    end
+  end
+
+  def bookmark
+    @course = Course.find(params[:id])
+
+    if current_user.bookmarked_courses.include?(@course)
+      current_user.bookmarked_courses.delete(@course)
+      bookmarked = false
+    else
+      current_user.bookmarked_courses << @course
+      bookmarked = true
+    end
+
+    respond_to do |format|
+      format.json { render json: { bookmarked: bookmarked } }
     end
   end
 

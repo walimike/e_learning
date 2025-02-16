@@ -1,11 +1,14 @@
-<div class="card mt-4 course-card shadow-sm border-0">
+<div class="card mt-4 course-card shadow-sm border-0" onclick="window.location='<%= course_path(course) %>'" style="cursor: pointer;">
   <div class="position-relative">
     <img src="<%= url_for(course.thumbnail) || 'https://via.placeholder.com/350' %>" 
      class="card-img-top rounded-top img-fluid fixed-img" 
      alt="<%= course.title %>">
-    <span class="position-absolute top-0 end-0 badge rounded-pill bg-light p-2 m-2">
-      <i class="bi bi-bookmark"></i>
+    <span class="position-absolute top-0 end-0 badge rounded-pill p-2 m-2 bg-light bookmark-btn" 
+          data-course-id="<%= course.id %>">
+      <i class="bi <%= current_user.bookmarked_courses.include?(course) ? 'bi-bookmark-fill text-primary' : 'bi-bookmark' %>"></i>
     </span>
+
+
   </div>
   <div class="card-body">
     <div class="d-flex align-items-center mb-2">
@@ -17,25 +20,77 @@
     <h5 class="card-title"><%= course.title %></h5>
     <p class="text-muted">
       <i class="bi bi-person"></i> 1 
-      <i class="bi bi-clock ms-2"></i> <%= course.duration || 0 %>
+      <i class="bi bi-clock ms-2"></i> <%= course.formatted_duration %>
     </p>
     <div class="d-flex align-items-center">
-      <div class="avatar-circle bg-primary text-white me-2">
+      <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center" style="width: 40px; height: 40px; font-weight: bold;">
         <%= user_initials(course.user.full_name) %>
       </div>
-      <small class="text-muted">By <%= course.user.full_name %> in <%= course.categories.join(', ') %></small>
+      <small class="text-muted mx-2">By <%= course.user.full_name %> in <%= course.categories.join(', ') %></small>
     </div>
     <hr>
     <div class="d-flex justify-content-between align-items-center">
       <p class="fw-bold fs-5 mb-0">UGX <%= number_with_delimiter(course.price, delimiter: ' ') %></p>
-      <%= link_to "View Details", course_path(course), class: "btn btn-primary rounded-pill px-3" %>
+      <%= link_to "Purchase", payments_path(course_id: course.id), method: :post, class: "btn btn-primary rounded-pill px-3", data: { turbo: false } %>
     </div>
   </div>
 </div>
 <style>
 .fixed-img {
-  width: 100%; /* Ensures all images take the full width of the card */
-  height: 230px; /* Set a fixed height */
-  object-fit: cover; /* Ensures images maintain aspect ratio and fill the space */
+  width: 100%;
+  height: 230px;
+  object-fit: cover;
 }
+
+.bookmark-btn {
+  background-color: rgba(0, 0, 255, 0.1); /* Light blue background */
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+.bookmark-btn.active {
+  background-color: blue; /* Fully blue when active */
+  color: white;
+}
+
+.bookmark-btn i {
+  color: blue;
+}
+
+.bookmark-btn.active i {
+  color: white;
+}
+
 </style>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  document.querySelectorAll(".bookmark-btn").forEach((button) => {
+    button.addEventListener("click", function(event) {
+      event.stopPropagation(); // Prevent the click from bubbling to the card
+      const courseId = this.dataset.courseId;
+      const icon = this.querySelector("i");
+
+      fetch(`/courses/${courseId}/bookmark`, {
+        method: "POST",
+        headers: {
+          "X-CSRF-Token": document.querySelector("meta[name='csrf-token']").content,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({})
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.bookmarked) {
+          icon.classList.remove("bi-bookmark");
+          icon.classList.add("bi-bookmark-fill", "text-primary");
+        } else {
+          icon.classList.remove("bi-bookmark-fill", "text-primary");
+          icon.classList.add("bi-bookmark");
+        }
+      })
+      .catch(error => console.error("Error:", error));
+    });
+  });
+});
+
+</script>

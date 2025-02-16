@@ -16,6 +16,16 @@
   </div>
 
   <div class="mb-3">
+    <%= form.label :description, class: "form-label" %>
+    <%= form.text_field :description, class: "form-control" %>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :duration, "Duration (Minutes)" %>
+    <%= form.number_field :duration, class: "form-control", min: 1, placeholder: "Enter duration in minutes" %>
+  </div>
+
+  <div class="mb-3">
     <%= form.label :video_url, class: "form-label" %>
     <%= form.text_field :video_url, class: "form-control" %>
   </div>

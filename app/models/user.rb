@@ -2,6 +2,7 @@ class User < ApplicationRecord
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   has_many :courses
+  has_and_belongs_to_many :bookmarked_courses, class_name: "Course", join_table: "bookmarks"
 
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable,
@@ -14,5 +15,9 @@ class User < ApplicationRecord
       user.full_name = auth.info.name
       user.avatar_url = auth.info.image
     end 
+  end
+
+  def bookmarked?(course)
+    bookmarked_courses.exists?(course.id)
   end
 end

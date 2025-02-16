@@ -7,7 +7,12 @@ Rails.application.routes.draw do
   resources :quizzes
   resources :lessons
   resources :enrollments
-  resources :courses
+  resources :courses do
+    member do
+      post :bookmark
+    end
+  end
+  
   root 'courses#index'
   devise_for :users, controllers: { 
     registrations: 'users/registrations',
