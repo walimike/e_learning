@@ -1,20 +1,21 @@
-<div class="card mt-4 course-card shadow-sm border-0" onclick="window.location='<%= course_path(course) %>'" style="cursor: pointer;">
+<div class="card mt-4 course-card shadow-sm border-0" 
+     onclick="if (!event.target.closest('.bookmark-btn, .enroll-btn')) { window.location='<%= course_path(course) %>'; }" 
+     style="cursor: pointer;">
+  
   <div class="position-relative">
     <img src="<%= url_for(course.thumbnail) || 'https://via.placeholder.com/350' %>" 
-     class="card-img-top rounded-top img-fluid fixed-img" 
-     alt="<%= course.title %>">
+         class="card-img-top rounded-top img-fluid fixed-img" 
+         alt="<%= course.title %>">
+
     <span class="position-absolute top-0 end-0 badge rounded-pill p-2 m-2 bg-light bookmark-btn" 
           data-course-id="<%= course.id %>">
       <i class="bi <%= current_user.bookmarked_courses.include?(course) ? 'bi-bookmark-fill text-primary' : 'bi-bookmark' %>"></i>
     </span>
-
-
   </div>
+
   <div class="card-body">
     <div class="d-flex align-items-center mb-2">
-      <span class="text-warning">
-        ★★★☆☆
-      </span>
+      <span class="text-warning">★★★☆☆</span>
       <small class="text-muted ms-2">0 reviews</small>
     </div>
     <h5 class="card-title"><%= course.title %></h5>
@@ -22,19 +23,63 @@
       <i class="bi bi-person"></i> 1 
       <i class="bi bi-clock ms-2"></i> <%= course.formatted_duration %>
     </p>
+
     <div class="d-flex align-items-center">
-      <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center" style="width: 40px; height: 40px; font-weight: bold;">
+      <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center" 
+           style="width: 40px; height: 40px; font-weight: bold;">
         <%= user_initials(course.user.full_name) %>
       </div>
       <small class="text-muted mx-2">By <%= course.user.full_name %> in <%= course.categories.join(', ') %></small>
     </div>
+
     <hr>
+
     <div class="d-flex justify-content-between align-items-center">
       <p class="fw-bold fs-5 mb-0">UGX <%= number_with_delimiter(course.price, delimiter: ' ') %></p>
-      <%= link_to "Purchase", payments_path(course_id: course.id), method: :post, class: "btn btn-primary rounded-pill px-3", data: { turbo: false } %>
+      <button class="btn btn-primary rounded-pill px-3 enroll-btn" 
+              data-bs-toggle="modal" data-bs-target="#paymentModal" 
+              data-course-id="<%= course.id %>"
+              data-course-title="<%= course.title %>"
+              data-course-price="UGX <%= number_with_delimiter(course.price, delimiter: ' ') %>"
+              data-course-instructor="<%= course.user.full_name %>"
+              data-course-duration="<%= course.formatted_duration %>">
+        Enroll
+      </button>
     </div>
   </div>
 </div>
+
+<!-- Payment Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="paymentModalLabel">Confirm Payment</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <h5 id="modalCourseTitle"></h5>
+        <p class="text-muted">
+          <strong>Instructor:</strong> <span id="modalCourseInstructor"></span><br>
+          <strong>Duration:</strong> <span id="modalCourseDuration"></span><br>
+          <strong>Price:</strong> <span id="modalCoursePrice"></span>
+        </p>
+        <hr>
+        <p>Are you sure you want to enroll in this course?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form id="paymentForm" action="<%= payments_path %>" method="POST">
+          <input type="hidden" name="course_id" id="modalCourseId">
+          <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+          <button type="submit" class="btn btn-primary">Confirm Payment</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Styles -->
 <style>
 .fixed-img {
   width: 100%;
@@ -43,13 +88,13 @@
 }
 
 .bookmark-btn {
-  background-color: rgba(0, 0, 255, 0.1); /* Light blue background */
+  background-color: rgba(0, 0, 255, 0.1);
   cursor: pointer;
   transition: all 0.3s ease-in-out;
 }
 
 .bookmark-btn.active {
-  background-color: blue; /* Fully blue when active */
+  background-color: blue;
   color: white;
 }
 
@@ -60,15 +105,20 @@
 .bookmark-btn.active i {
   color: white;
 }
-
 </style>
+
+<!-- Scripts -->
 <script>
 document.addEventListener("DOMContentLoaded", function() {
+  // Handle bookmarking logic
   document.querySelectorAll(".bookmark-btn").forEach((button) => {
     button.addEventListener("click", function(event) {
-      event.stopPropagation(); // Prevent the click from bubbling to the card
+      event.stopPropagation(); // Prevent click from reaching parent card
+      event.preventDefault(); // Ensure no unintended behavior
+
       const courseId = this.dataset.courseId;
       const icon = this.querySelector("i");
+      const isBookmarked = icon.classList.contains("bi-bookmark-fill");
 
       fetch(`/courses/${courseId}/bookmark`, {
         method: "POST",
@@ -80,6 +130,7 @@ document.addEventListener("DOMContentLoaded", function() {
       })
       .then(response => response.json())
       .then(data => {
+        // Toggle bookmark state dynamically for this button only
         if (data.bookmarked) {
           icon.classList.remove("bi-bookmark");
           icon.classList.add("bi-bookmark-fill", "text-primary");
@@ -91,6 +142,26 @@ document.addEventListener("DOMContentLoaded", function() {
       .catch(error => console.error("Error:", error));
     });
   });
-});
 
+  // Handle enroll button logic
+  document.querySelectorAll(".enroll-btn").forEach((button) => {
+    button.addEventListener("click", function(event) {
+      event.stopPropagation(); // Prevent click from triggering card navigation
+
+      // Fetch course details from button attributes
+      const courseId = this.dataset.courseId;
+      const courseTitle = this.dataset.courseTitle;
+      const coursePrice = this.dataset.coursePrice;
+      const courseInstructor = this.dataset.courseInstructor;
+      const courseDuration = this.dataset.courseDuration;
+
+      // Set modal details dynamically
+      document.getElementById("modalCourseId").value = courseId;
+      document.getElementById("modalCourseTitle").innerText = courseTitle;
+      document.getElementById("modalCoursePrice").innerText = coursePrice;
+      document.getElementById("modalCourseInstructor").innerText = courseInstructor;
+      document.getElementById("modalCourseDuration").innerText = courseDuration;
+    });
+  });
+});
 </script>
